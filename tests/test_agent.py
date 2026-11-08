@@ -188,6 +188,32 @@ class TestAgent(unittest.TestCase):
             self.assertTrue(result["passed"])
             self.assertEqual(len(client.calls), 1)
 
+    def test_default_max_steps_is_five(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            desc = _setup_task1(tmp)
+            client = FakeClient([(MEDIAN_PATCH, 10, 5)])
+            tools = SandboxTools(tmp)
+            agent = Agent(client, tools, TokenBudget(20000),
+                          ApprovalGate(auto_approve=True),
+                          "gemini/gemini-2.5-flash")
+            self.assertEqual(agent.max_steps, 5)
+
+    def test_failed_test_output_and_current_state_sent_back(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            desc = _setup_task1(tmp)
+            agent, client, budget = self._make_agent(
+                tmp, [(WRONG_PATCH, 10, 5), (MEDIAN_PATCH, 10, 5)])
+            result = agent.run({"id": "task1_add_function",
+                                "description": desc, "private": False})
+            self.assertTrue(result["passed"])
+            self.assertEqual(len(client.calls), 2)
+            second_prompt = client.calls[1][0]["content"]
+            self.assertIn("Tests failed", second_prompt)
+            # The second prompt shows the file as the model left it
+            # after its first patch (median returning 0), not the
+            # original starter file.
+            self.assertIn("return 0", second_prompt)
+
     def test_lean_context_is_smaller_than_direct(self):
         with tempfile.TemporaryDirectory() as tmp:
             desc = _setup_task1(tmp)

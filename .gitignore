@@ -9,4 +9,5 @@ build/
 .DS_Store
 *.log
 traces/
+traces-batch4/
 sandbox/

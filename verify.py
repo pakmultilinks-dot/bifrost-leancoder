@@ -1,8 +1,11 @@
 """Judge verification for LeanCoder, offline, no key, no Docker,
 no Bifrost needed. Runs the full unit test suite, then replays every
-recorded trace: re-applies the patches, runs the hidden tests, and
-checks the ledger numbers. Prints PASS or FAIL with the measured
-numbers, and exits 0 only when everything passes.
+recorded trace in the committed example trace sets
+(examples/measured-traces and examples/measured-traces-batch4):
+re-applies the patches, runs the hidden tests, and checks the
+ledger numbers. Prints PASS or FAIL with the measured numbers, and
+exits 0 only when everything passes. Pass --traces-dir one or more
+times to replay a different directory instead.
 
 Runs in under 2 minutes. A live agent run from zero is NOT under
 5 minutes, because it needs Bifrost and Ollama running and a model
@@ -70,7 +73,9 @@ def check_traces(traces_dir, tasks_dir):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="LeanCoder verification")
-    parser.add_argument("--traces-dir", default="traces")
+    parser.add_argument("--traces-dir", default=None, action="append",
+                        help="Trace directory to replay, repeatable. "
+                             "Default: the committed example trace sets.")
     parser.add_argument("--tests-dir", default="tests")
     parser.add_argument("--tasks-dir", default="tasks")
     args = parser.parse_args(argv)
@@ -80,10 +85,19 @@ def main(argv=None):
     ran, tests_failed, _output = run_unit_tests(args.tests_dir)
     print("Unit tests: " + str(ran) + " run, "
           + ("FAILED" if tests_failed else "passed"))
-    trace_lines, traces_matched, total_tasks, total_matched = check_traces(
-        args.traces_dir, args.tasks_dir)
-    for line in trace_lines:
-        print(line)
+    trace_dirs = args.traces_dir or ["examples/measured-traces",
+                                     "examples/measured-traces-batch4"]
+    total_tasks = 0
+    total_matched = 0
+    traces_matched = True
+    for traces_dir in trace_dirs:
+        trace_lines, matched, total, matched_count = check_traces(
+            traces_dir, args.tasks_dir)
+        for line in trace_lines:
+            print(line)
+        total_tasks += total
+        total_matched += matched_count
+        traces_matched = traces_matched and matched
     print("Tasks replayed: " + str(total_tasks) + ", matched: "
           + str(total_matched))
     elapsed = time.time() - start

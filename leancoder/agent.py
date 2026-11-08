@@ -2,9 +2,12 @@
 
 Plan, read files with tools, propose a patch, show the diff and ask
 for approval, apply only after approval, run the tests, retry at
-most 3 times, then report tokens and cost. Lean mode sends only the
+most 5 times, then report tokens and cost. Lean mode sends only the
 files the task needs, found by local code search. Direct mode sends
-the whole repo context on every model call.
+the whole repo context on every model call. After a failed test run,
+the failing test output is sent back to the model, and the files
+are re-read so the next patch is written against the current file
+state, not the original one.
 """
 from __future__ import annotations
 
@@ -20,7 +23,7 @@ from .budget import BudgetExceeded, TokenBudget
 from .ledger import RunLedger
 from .tools import SandboxTools
 
-MAX_STEPS = 3
+MAX_STEPS = 5
 STOPWORDS = {
     "the", "and", "with", "into", "that", "this", "from", "your",
     "task", "write", "make", "function", "test", "tests",
@@ -152,6 +155,10 @@ class Agent:
         context = self._gather_context(task)
         feedback = ""
         for step in range(1, self.max_steps + 1):
+            if step > 1:
+                # Re-read the files so the model sees the current state
+                # after its own patch, not the original starter files.
+                context = self._gather_context(task)
             messages = self._prompt(task, context, feedback)
             try:
                 result = self.client.chat(messages, model=self.model)

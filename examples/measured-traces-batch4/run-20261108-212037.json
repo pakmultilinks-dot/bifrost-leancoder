@@ -1,0 +1,175 @@
+{
+  "run_id": "run-20261108-212037",
+  "created_at": "2026-11-08T21:20:37.641533+00:00",
+  "model_calls": [
+    {
+      "task_id": "task4_refactor_dupe",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "prompt_tokens": 331,
+      "completion_tokens": 135,
+      "total_tokens": 466,
+      "cost": 0.0,
+      "estimated": false
+    },
+    {
+      "task_id": "task4_refactor_dupe",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "prompt_tokens": 361,
+      "completion_tokens": 159,
+      "total_tokens": 520,
+      "cost": 0.0,
+      "estimated": false
+    },
+    {
+      "task_id": "task4_refactor_dupe",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "prompt_tokens": 361,
+      "completion_tokens": 143,
+      "total_tokens": 504,
+      "cost": 0.0,
+      "estimated": false
+    },
+    {
+      "task_id": "task4_refactor_dupe",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "prompt_tokens": 361,
+      "completion_tokens": 257,
+      "total_tokens": 618,
+      "cost": 0.0,
+      "estimated": false
+    },
+    {
+      "task_id": "task4_refactor_dupe",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "prompt_tokens": 361,
+      "completion_tokens": 124,
+      "total_tokens": 485,
+      "cost": 0.0,
+      "estimated": false
+    }
+  ],
+  "tool_calls": [
+    {
+      "action": "list_files",
+      "target": ".",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "read_file",
+      "target": "pricing.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "list_files",
+      "target": ".",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "read_file",
+      "target": "pricing.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "list_files",
+      "target": ".",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "read_file",
+      "target": "pricing.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "list_files",
+      "target": ".",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "read_file",
+      "target": "pricing.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "list_files",
+      "target": ".",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "read_file",
+      "target": "pricing.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "read_file",
+      "target": "pricing.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "write_patch",
+      "target": "pricing.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "run_tests",
+      "target": "python3 -m unittest discover -s hidden -v",
+      "ok": true,
+      "detail": "test_helper_exists_and_used (test_hidden.TestPricing.test_helper_exists_and_used) ... ok\ntest_with_discount (test_hidden.TestPricing.test_with_discount) ... ok\ntest_with_tax (test_hidden.TestPricing.test_with_tax) ... ok\ntest_zero (test_hidden.TestPricing.test_zero) ... ok\n\n----------------------------------------------------------------------\nRan 4 tests in 0.001s\n\nOK\n"
+    }
+  ],
+  "test_results": [
+    {
+      "task_id": "task4_refactor_dupe",
+      "passed": true,
+      "returncode": 0,
+      "output": "test_helper_exists_and_used (test_hidden.TestPricing.test_helper_exists_and_used) ... ok\ntest_with_discount (test_hidden.TestPricing.test_with_discount) ... ok\ntest_with_tax (test_hidden.TestPricing.test_with_tax) ... ok\ntest_zero (test_hidden.TestPricing.test_zero) ... ok\n\n----------------------------------------------------------------------\nRan 4 tests in 0.001s\n\nOK\n"
+    }
+  ],
+  "approvals": [
+    {
+      "kind": "write_patch",
+      "summary": "Write file pricing.py",
+      "approved": true,
+      "mode": "demo auto-approve"
+    }
+  ],
+  "patches": [
+    {
+      "task_id": "task4_refactor_dupe",
+      "step": 5,
+      "file": "pricing.py",
+      "content": "\"\"\"Pricing helpers, 20 percent tax.\"\"\"\n\ndef add_tax(amount):\n    \"\"\"Add 20 percent tax to the amount.\"\"\"\n    return amount * 1.20\n\ndef price_with_tax(amount):\n    \"\"\"Add 20 percent tax, round to 2 decimals.\"\"\"\n    return round(add_tax(amount), 2)\n\n\ndef price_with_discount(amount, percent):\n    \"\"\"Apply a percent discount, then add 20 percent tax.\"\"\"\n    after = amount - (amount * (percent / 100))\n    return round(add_tax(after), 2)\n"
+    }
+  ],
+  "task_results": [
+    {
+      "task_id": "task4_refactor_dupe",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "passed": true,
+      "steps": 5,
+      "prompt_tokens": 1775,
+      "completion_tokens": 818,
+      "total_tokens": 2593,
+      "cost": 0.0,
+      "error": "",
+      "estimated": false
+    }
+  ]
+}

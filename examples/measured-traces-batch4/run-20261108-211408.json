@@ -1,0 +1,109 @@
+{
+  "run_id": "run-20261108-211408",
+  "created_at": "2026-11-08T21:14:08.436672+00:00",
+  "model_calls": [
+    {
+      "task_id": "task1_add_function",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "prompt_tokens": 227,
+      "completion_tokens": 177,
+      "total_tokens": 404,
+      "cost": 0.0,
+      "estimated": false
+    },
+    {
+      "task_id": "task1_add_function",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "prompt_tokens": 257,
+      "completion_tokens": 131,
+      "total_tokens": 388,
+      "cost": 0.0,
+      "estimated": false
+    }
+  ],
+  "tool_calls": [
+    {
+      "action": "list_files",
+      "target": ".",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "read_file",
+      "target": "mathutil.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "list_files",
+      "target": ".",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "read_file",
+      "target": "mathutil.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "read_file",
+      "target": "mathutil.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "write_patch",
+      "target": "mathutil.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "run_tests",
+      "target": "python3 -m unittest discover -s hidden -v",
+      "ok": true,
+      "detail": "test_empty_raises (test_hidden.TestMedian.test_empty_raises) ... ok\ntest_even_length (test_hidden.TestMedian.test_even_length) ... ok\ntest_has_docstring (test_hidden.TestMedian.test_has_docstring) ... ok\ntest_odd_length (test_hidden.TestMedian.test_odd_length) ... ok\ntest_single (test_hidden.TestMedian.test_single) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.001s\n\nOK\n"
+    }
+  ],
+  "test_results": [
+    {
+      "task_id": "task1_add_function",
+      "passed": true,
+      "returncode": 0,
+      "output": "test_empty_raises (test_hidden.TestMedian.test_empty_raises) ... ok\ntest_even_length (test_hidden.TestMedian.test_even_length) ... ok\ntest_has_docstring (test_hidden.TestMedian.test_has_docstring) ... ok\ntest_odd_length (test_hidden.TestMedian.test_odd_length) ... ok\ntest_single (test_hidden.TestMedian.test_single) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.001s\n\nOK\n"
+    }
+  ],
+  "approvals": [
+    {
+      "kind": "write_patch",
+      "summary": "Write file mathutil.py",
+      "approved": true,
+      "mode": "demo auto-approve"
+    }
+  ],
+  "patches": [
+    {
+      "task_id": "task1_add_function",
+      "step": 2,
+      "file": "mathutil.py",
+      "content": "\"\"\"Small math helpers.\"\"\"\n\n\ndef add(a, b):\n    \"\"\"Return a plus b.\"\"\"\n    return a + b\n\n\ndef subtract(a, b):\n    \"\"\"Return a minus b.\"\"\"\n    return a - b\n\n\ndef median(lst):\n    \"\"\"Return the median of the list.\"\"\"\n    if not lst:\n        raise ValueError(\"The list is empty.\")\n    lst.sort()\n    n = len(lst)\n    mid = n // 2\n    if n % 2 == 0:\n        return (lst[mid - 1] + lst[mid]) / 2\n    else:\n        return lst[mid]\n"
+    }
+  ],
+  "task_results": [
+    {
+      "task_id": "task1_add_function",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "passed": true,
+      "steps": 2,
+      "prompt_tokens": 484,
+      "completion_tokens": 308,
+      "total_tokens": 792,
+      "cost": 0.0,
+      "error": "",
+      "estimated": false
+    }
+  ]
+}

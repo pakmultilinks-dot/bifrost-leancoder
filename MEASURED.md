@@ -137,3 +137,97 @@ A copy of task1 was marked PRIVATE and run twice.
   and Bifrost running and the model downloaded. The under-2-minute
   judge path is verify.py, which replays the recorded traces
   offline with no key, no Docker, and no Bifrost.
+
+## Batch 4: repeated runs with the improved agent
+
+All numbers below are real measurements from live runs on 2026-11-08
+20:54-21:26 UTC (2026-11-09 01:54-02:26 PKT). Nothing here is
+estimated, projected, or invented. Failed tasks are shown as
+failures, and no run was dropped.
+
+### Agent changes
+
+- Max steps raised from 3 to 5.
+- The failing test output was already sent back to the model after
+  a failed test run (present since Batch 1, verified and kept).
+  New in Batch 4: the files are re-read on every step, so the model
+  sees the current file state after its own patch instead of the
+  original starter files.
+- Budget hard stop, approval gates, sandbox confinement, and the
+  private-task local-only rule are unchanged. The 5 tasks and the
+  hidden tests are unchanged.
+
+### Setup
+
+- Same setup as Batch 3: model ollama/qwen2.5-coder:3b, Ollama
+  0.40.15, Bifrost v2.5.0 on http://127.0.0.1:8080. Both services
+  were still running and were smoke tested before the runs (2+2
+  answered 4 directly through Ollama and through Bifrost). Nothing
+  was reinstalled or restarted.
+- Every run used --auto-approve demo mode, one task per process,
+  and saved its ledger trace. The 30 traces are committed in
+  examples/measured-traces-batch4/ and replayed by verify.py.
+
+### Results: lean mode vs direct mode, 3 repeats each
+
+Each task ran 3 times in lean mode and 3 times in direct mode.
+Mean tokens are the mean of the 3 repeats, with the 3 individual
+totals in brackets.
+
+| Task | Lean mean tokens | Lean pass | Direct mean tokens | Direct pass | Lower mean |
+| --- | --- | --- | --- | --- | --- |
+| task1_add_function | 1555.0 (1204, 1249, 2212) | 2 of 3 | 1130.0 (979, 792, 1619) | 3 of 3 | direct |
+| task2_fix_off_by_one | 424.3 (288, 709, 276) | 3 of 3 | 895.7 (1687, 278, 722) | 2 of 3 | lean |
+| task3_write_tests | 1027.3 (2221, 453, 408) | 2 of 3 | 556.3 (408, 853, 408) | 3 of 3 | direct |
+| task4_refactor_dupe | 1589.7 (2652, 1655, 462) | 2 of 3 | 1174.7 (459, 472, 2593) | 3 of 3 | direct |
+| task5_input_validation | 1264.3 (1724, 1409, 660) | 2 of 3 | 1388.7 (990, 1745, 1431) | 2 of 3 | lean |
+
+Total passes: lean 11 of 15, direct 13 of 15.
+
+Mean tokens per passing task: lean 797.5 (11 passes), direct 923.4
+(13 passes). Lean used about 14 percent fewer tokens per passing
+task.
+
+Elapsed time: lean runs 1115 seconds total, direct runs 837 seconds
+total, 1952 seconds for all 30 runs. Fastest single run was 9
+seconds.
+
+### Honest reading
+
+- Lean does NOT win consistently. Lean had the lower mean token
+  count on only 2 of 5 tasks (task2 and task5). Direct had the
+  lower mean on tasks 1, 3, and 4.
+- Lean passed less often: 11 of 15 runs, against 13 of 15 for
+  direct. The improvement did not fix that.
+- The one number that still favours lean is tokens per passing
+  task: 797.5 against 923.4, about 14 percent fewer. It held in
+  both batches (Batch 3: 560.5 against 579.75).
+- The extra steps rescued 4 runs that would have failed at 3
+  steps: task1 direct rep 3 passed in 4 steps, task4 direct rep 3
+  passed in 5 steps, task5 lean rep 2 passed in 4 steps, task5
+  direct rep 3 passed in 4 steps.
+- The extra steps also made failures more expensive. All 6 failed
+  runs burned the full 5 steps and between 1687 and 2652 tokens,
+  and the error in every case is "Max steps reached without
+  passing tests." A failed lean run can cost more than a passed
+  direct run.
+- The spread inside one task and mode is very large. Task4 lean
+  ranged from 462 to 2652 tokens across its 3 repeats; task2
+  direct ranged from 278 to 1687 tokens. With this 3b model, no
+  mean here is a stable truth, it is an average of 3 noisy runs.
+- Combined across both batches: lean passed 15 of 20 runs,
+  direct passed 17 of 20. Combined tokens per passing task: lean
+  734.3 (11015 tokens over 15 passes), direct 842.5 (14323 tokens
+  over 17 passes). So lean uses about 13 percent fewer tokens per
+  passing task across all measured runs, but passes less often.
+- Cost is 0.0 for every run: the model runs locally, so there is
+  no per-token price. No cost figure is invented.
+
+### verify.py
+
+`python3 verify.py` on all 40 committed traces (10 from Batch 3,
+30 from Batch 4): PASS, exit 0, 4.8 seconds. 83 unit tests run,
+passed. 40 of 40 traces replayed and matched (patches re-applied,
+hidden tests re-run, ledger token totals checked). The failed tasks
+replay as failures too, which is the point: replay checks what
+happened, it does not turn failures into passes.

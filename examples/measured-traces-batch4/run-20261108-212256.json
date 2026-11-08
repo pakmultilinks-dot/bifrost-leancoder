@@ -1,0 +1,131 @@
+{
+  "run_id": "run-20261108-212256",
+  "created_at": "2026-11-08T21:22:56.818503+00:00",
+  "model_calls": [
+    {
+      "task_id": "task5_input_validation",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "prompt_tokens": 216,
+      "completion_tokens": 94,
+      "total_tokens": 310,
+      "cost": 0.0,
+      "estimated": false
+    },
+    {
+      "task_id": "task5_input_validation",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "prompt_tokens": 246,
+      "completion_tokens": 94,
+      "total_tokens": 340,
+      "cost": 0.0,
+      "estimated": false
+    },
+    {
+      "task_id": "task5_input_validation",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "prompt_tokens": 246,
+      "completion_tokens": 94,
+      "total_tokens": 340,
+      "cost": 0.0,
+      "estimated": false
+    }
+  ],
+  "tool_calls": [
+    {
+      "action": "list_files",
+      "target": ".",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "read_file",
+      "target": "validate.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "list_files",
+      "target": ".",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "read_file",
+      "target": "validate.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "list_files",
+      "target": ".",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "read_file",
+      "target": "validate.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "read_file",
+      "target": "validate.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "write_patch",
+      "target": "validate.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "run_tests",
+      "target": "python3 -m unittest discover -s hidden -v",
+      "ok": true,
+      "detail": "test_empty (test_hidden.TestParseAge.test_empty) ... ok\ntest_negative (test_hidden.TestParseAge.test_negative) ... ok\ntest_non_numeric (test_hidden.TestParseAge.test_non_numeric) ... ok\ntest_too_old (test_hidden.TestParseAge.test_too_old) ... ok\ntest_valid (test_hidden.TestParseAge.test_valid) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.001s\n\nOK\n"
+    }
+  ],
+  "test_results": [
+    {
+      "task_id": "task5_input_validation",
+      "passed": true,
+      "returncode": 0,
+      "output": "test_empty (test_hidden.TestParseAge.test_empty) ... ok\ntest_negative (test_hidden.TestParseAge.test_negative) ... ok\ntest_non_numeric (test_hidden.TestParseAge.test_non_numeric) ... ok\ntest_too_old (test_hidden.TestParseAge.test_too_old) ... ok\ntest_valid (test_hidden.TestParseAge.test_valid) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.001s\n\nOK\n"
+    }
+  ],
+  "approvals": [
+    {
+      "kind": "write_patch",
+      "summary": "Write file validate.py",
+      "approved": true,
+      "mode": "demo auto-approve"
+    }
+  ],
+  "patches": [
+    {
+      "task_id": "task5_input_validation",
+      "step": 3,
+      "file": "validate.py",
+      "content": "\"\"\"Input validation helpers.\"\"\"\n\n\ndef parse_age(value):\n    \"\"\"Parse an age string into an int.\"\"\"\n    try:\n        age = int(value)\n        if age < 0:\n            raise ValueError(\"Age cannot be negative\")\n        if age > 150:\n            raise ValueError(\"Age cannot be over 150\")\n        return age\n    except ValueError:\n        raise ValueError(\"Invalid age input\")\n"
+    }
+  ],
+  "task_results": [
+    {
+      "task_id": "task5_input_validation",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "passed": true,
+      "steps": 3,
+      "prompt_tokens": 708,
+      "completion_tokens": 282,
+      "total_tokens": 990,
+      "cost": 0.0,
+      "error": "",
+      "estimated": false
+    }
+  ]
+}

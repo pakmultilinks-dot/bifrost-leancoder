@@ -1,0 +1,153 @@
+{
+  "run_id": "run-20261108-211458",
+  "created_at": "2026-11-08T21:14:58.324898+00:00",
+  "model_calls": [
+    {
+      "task_id": "task1_add_function",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "prompt_tokens": 227,
+      "completion_tokens": 148,
+      "total_tokens": 375,
+      "cost": 0.0,
+      "estimated": false
+    },
+    {
+      "task_id": "task1_add_function",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "prompt_tokens": 257,
+      "completion_tokens": 176,
+      "total_tokens": 433,
+      "cost": 0.0,
+      "estimated": false
+    },
+    {
+      "task_id": "task1_add_function",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "prompt_tokens": 257,
+      "completion_tokens": 141,
+      "total_tokens": 398,
+      "cost": 0.0,
+      "estimated": false
+    },
+    {
+      "task_id": "task1_add_function",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "prompt_tokens": 257,
+      "completion_tokens": 156,
+      "total_tokens": 413,
+      "cost": 0.0,
+      "estimated": false
+    }
+  ],
+  "tool_calls": [
+    {
+      "action": "list_files",
+      "target": ".",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "read_file",
+      "target": "mathutil.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "list_files",
+      "target": ".",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "read_file",
+      "target": "mathutil.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "list_files",
+      "target": ".",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "read_file",
+      "target": "mathutil.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "list_files",
+      "target": ".",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "read_file",
+      "target": "mathutil.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "read_file",
+      "target": "mathutil.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "write_patch",
+      "target": "mathutil.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "run_tests",
+      "target": "python3 -m unittest discover -s hidden -v",
+      "ok": true,
+      "detail": "test_empty_raises (test_hidden.TestMedian.test_empty_raises) ... ok\ntest_even_length (test_hidden.TestMedian.test_even_length) ... ok\ntest_has_docstring (test_hidden.TestMedian.test_has_docstring) ... ok\ntest_odd_length (test_hidden.TestMedian.test_odd_length) ... ok\ntest_single (test_hidden.TestMedian.test_single) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.001s\n\nOK\n"
+    }
+  ],
+  "test_results": [
+    {
+      "task_id": "task1_add_function",
+      "passed": true,
+      "returncode": 0,
+      "output": "test_empty_raises (test_hidden.TestMedian.test_empty_raises) ... ok\ntest_even_length (test_hidden.TestMedian.test_even_length) ... ok\ntest_has_docstring (test_hidden.TestMedian.test_has_docstring) ... ok\ntest_odd_length (test_hidden.TestMedian.test_odd_length) ... ok\ntest_single (test_hidden.TestMedian.test_single) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.001s\n\nOK\n"
+    }
+  ],
+  "approvals": [
+    {
+      "kind": "write_patch",
+      "summary": "Write file mathutil.py",
+      "approved": true,
+      "mode": "demo auto-approve"
+    }
+  ],
+  "patches": [
+    {
+      "task_id": "task1_add_function",
+      "step": 4,
+      "file": "mathutil.py",
+      "content": "\"\"\"Small math helpers.\"\"\"\n\n\ndef add(a, b):\n    \"\"\"Return a plus b.\"\"\"\n    return a + b\n\n\ndef subtract(a, b):\n    \"\"\"Return a minus b.\"\"\"\n    return a - b\n\n\ndef median(numbers):\n    \"\"\"Return the median of a list of numbers.\"\"\"\n    if not numbers:\n        raise ValueError(\"median() not defined for empty list\")\n    numbers.sort()\n    n = len(numbers)\n    mid = n // 2\n    if n % 2 == 0:\n        return (numbers[mid - 1] + numbers[mid]) / 2.0\n    else:\n        return numbers[mid]\n"
+    }
+  ],
+  "task_results": [
+    {
+      "task_id": "task1_add_function",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "passed": true,
+      "steps": 4,
+      "prompt_tokens": 998,
+      "completion_tokens": 621,
+      "total_tokens": 1619,
+      "cost": 0.0,
+      "error": "",
+      "estimated": false
+    }
+  ]
+}
