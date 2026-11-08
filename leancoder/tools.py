@@ -54,10 +54,16 @@ class SandboxTools:
         return text
 
     def search_code(self, needle, subdir="."):
-        """Small local code search, case-insensitive substring match."""
+        """Small local code search, case-insensitive substring match.
+
+        Hidden test files are never read here, so the grading tests
+        cannot steer the search or reach the model through a hit.
+        """
         needle = (needle or "").lower()
         hits = []
         for rel in self.list_files(subdir):
+            if "hidden" in Path(rel).parts:
+                continue
             if not rel.endswith(".py"):
                 continue
             try:

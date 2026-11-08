@@ -32,6 +32,16 @@ class TestSandboxTools(unittest.TestCase):
         self.assertEqual(len(hits), 1)
         self.assertEqual(hits[0]["file"], "a.py")
 
+    def test_search_code_never_reads_hidden_tests(self):
+        self.tools.write_patch("a.py", "def total_upto(n):\n    pass\n")
+        self.tools.write_patch("hidden/test_hidden.py",
+                               "def test_total_upto():\n    assert True\n")
+        hits = self.tools.search_code("total_upto")
+        self.assertEqual([h["file"] for h in hits], ["a.py"])
+        read_targets = [e["target"] for e in self.tools.log
+                        if e["action"] == "read_file"]
+        self.assertNotIn("hidden/test_hidden.py", read_targets)
+
     def test_write_outside_sandbox_refused(self):
         with self.assertRaises(OutsideSandboxError):
             self.tools.write_patch("../evil.py", "bad\n")
