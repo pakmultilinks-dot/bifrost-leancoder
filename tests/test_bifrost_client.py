@@ -1,4 +1,5 @@
 """Tests for the Bifrost client. All HTTP is mocked, no live call."""
+import os
 import unittest
 from unittest import mock
 
@@ -107,10 +108,15 @@ class TestBifrostClient(unittest.TestCase):
             client.chat([{"role": "user", "content": "hi"}])
 
     def test_no_model_raises(self):
-        client = BifrostClient(base_url="http://localhost:8080", model="",
-                               session=FakeSession([_ok_response()]))
-        with self.assertRaises(BifrostError):
-            client.chat([{"role": "user", "content": "hi"}])
+        # A client with no model must raise even when the shell happens
+        # to have BIFROST_MODEL set, so clear that variable for this test.
+        env = dict(os.environ)
+        env.pop("BIFROST_MODEL", None)
+        with mock.patch.dict("os.environ", env, clear=True):
+            client = BifrostClient(base_url="http://localhost:8080", model="",
+                                   session=FakeSession([_ok_response()]))
+            with self.assertRaises(BifrostError):
+                client.chat([{"role": "user", "content": "hi"}])
 
     def test_500_raises(self):
         client = BifrostClient(

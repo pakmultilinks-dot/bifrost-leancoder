@@ -20,7 +20,7 @@ LeanCoder sends only the code a task needs, found by a small local code search, 
 - `leancoder/ledger.py`: token ledger, one JSON record per run under `traces/`, with model calls, tool calls, test results, approval decisions, applied patches, and task results. Cost is recorded only when known, local models cost 0, anything else is unknown, never guessed.
 - `leancoder/replay.py`: replays a recorded trace offline, re-applies the patches to a fresh copy of the starter code, runs the hidden tests, and checks the ledger numbers match. Differences are reported plainly, never silently fixed.
 - `verify.py`: the judge verification path, offline, no key, no Docker, no Bifrost. Runs the full unit test suite, replays the recorded traces, and prints PASS or FAIL with the measured numbers.
-- `tasks/`: 5 small real dev tasks, each with a task description, a starter repo, and hidden tests that grade pass or fail.
+- `tasks/`: 5 small real dev tasks, each with a task description, a starter repo, and hidden tests that grade pass or fail. The hidden test source is never read by the agent's code search and never sent to the model. The agent only sees the pass or fail output of a test run, which it uses to fix a failing patch, the same way any coding agent works.
 - `tests/`: unit tests with mocked HTTP and mocked model calls, no live call, no real key.
 
 ## Install
@@ -78,6 +78,40 @@ docker run -p 8080:8080 maximhq/bifrost
 ```
 
 Bifrost dashboard: http://localhost:8080
+
+## How to run the demo
+
+The demo video shows one real live run, then the judge verification.
+To repeat it, with Ollama and Bifrost running:
+
+```bash
+export BIFROST_BASE_URL=http://127.0.0.1:8080
+export BIFROST_API_KEY=<your Bifrost virtual key>
+export BIFROST_MODEL=ollama/qwen2.5-coder:3b
+python3 -m leancoder.agent --task task1_add_function --mode lean --model ollama/qwen2.5-coder:3b --auto-approve
+```
+
+The run prints the task result, steps, total tokens, and the ledger
+path, then the ledger summary. `--auto-approve` is demo mode only:
+approval is normally required before every write.
+
+Then verify the recorded runs offline, no key, no Docker, no Bifrost:
+
+```bash
+python3 verify.py
+```
+
+It prints PASS or FAIL, the unit test count, and how many of the
+40 recorded traces replayed and matched.
+
+Honest limits: a live run from zero is NOT under 5 minutes, it needs
+Ollama and Bifrost running and the model downloaded. The under-5-minute
+judge path is `verify.py` plus the unit tests, which replay the recorded
+runs instead of making a live model call. The demo video shows the live
+run sped up, labelled on screen, because one task takes about a minute
+or more with the 3b model.
+The measured numbers are in MEASURED.md, including the tasks lean mode
+lost and the runs that failed.
 
 ## Modes
 
