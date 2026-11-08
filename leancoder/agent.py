@@ -17,6 +17,7 @@ from pathlib import Path
 from .approval import ApprovalGate
 from .bifrost_client import BifrostClient, BifrostError
 from .budget import BudgetExceeded, TokenBudget
+from .ledger import RunLedger
 from .tools import SandboxTools
 
 MAX_STEPS = 3
@@ -70,7 +71,7 @@ class Agent:
     """Run one task with one model, one budget, one approval gate."""
 
     def __init__(self, client, tools, budget, approval, model,
-                 mode="lean", max_steps=MAX_STEPS):
+                 mode="lean", max_steps=MAX_STEPS, ledger=None):
         if mode not in ("lean", "direct"):
             raise ValueError("mode must be lean or direct")
         self.client = client
@@ -80,6 +81,30 @@ class Agent:
         self.model = model
         self.mode = mode
         self.max_steps = max_steps
+        self.ledger = ledger
+
+    def _cost_for_call(self):
+        """Local models cost 0. Remote cost is unknown, never invented."""
+        return 0.0 if self._is_local_model() else None
+
+    def _finish(self, result):
+        """Record the finished task in the ledger, then return it."""
+        if self.ledger is not None:
+            for entry in self.tools.log:
+                self.ledger.record_tool_call(
+                    entry["action"], entry["target"], entry["ok"],
+                    entry.get("detail", ""))
+            trace = result.get("trace") or []
+            estimated = any(t.get("estimated") for t in trace)
+            self.ledger.record_task_result(
+                task_id=result["task_id"], mode=self.mode,
+                model=self.model, passed=result["passed"],
+                steps=result["steps"],
+                prompt_tokens=result["prompt_tokens"],
+                completion_tokens=result["completion_tokens"],
+                cost=self._cost_for_call(),
+                error=result.get("error", ""), estimated=estimated)
+        return result
 
     def _is_local_model(self):
         return self.model.startswith("ollama/")
@@ -115,7 +140,7 @@ class Agent:
         """Run one task. Returns a result dict, never raises on task failure."""
         trace = []
         if task.get("private") and not self._is_local_model():
-            return {
+            return self._finish({
                 "task_id": task.get("id", ""), "passed": False,
                 "steps": 0, "total_tokens": 0,
                 "prompt_tokens": 0, "completion_tokens": 0,
@@ -123,7 +148,7 @@ class Agent:
                          "a local model, and the configured model is not "
                          "local. Use an ollama/ model.",
                 "trace": trace,
-            }
+            })
         context = self._gather_context(task)
         feedback = ""
         for step in range(1, self.max_steps + 1):
@@ -131,23 +156,28 @@ class Agent:
             try:
                 result = self.client.chat(messages, model=self.model)
             except BifrostError as exc:
-                return {
+                return self._finish({
                     "task_id": task.get("id", ""), "passed": False,
                     "steps": step, "total_tokens": self.budget.total_tokens,
                     "prompt_tokens": self.budget.prompt_tokens,
                     "completion_tokens": self.budget.completion_tokens,
                     "error": str(exc), "trace": trace,
-                }
+                })
             try:
                 self.budget.add(result.prompt_tokens, result.completion_tokens)
             except BudgetExceeded as exc:
-                return {
+                return self._finish({
                     "task_id": task.get("id", ""), "passed": False,
                     "steps": step, "total_tokens": self.budget.total_tokens,
                     "prompt_tokens": self.budget.prompt_tokens,
                     "completion_tokens": self.budget.completion_tokens,
                     "error": str(exc), "trace": trace,
-                }
+                })
+            if self.ledger is not None:
+                self.ledger.record_model_call(
+                    task.get("id", ""), self.mode, result.model,
+                    result.prompt_tokens, result.completion_tokens,
+                    cost=self._cost_for_call(), estimated=result.estimated)
             trace.append({"step": step, "model": result.model,
                           "prompt_tokens": result.prompt_tokens,
                           "completion_tokens": result.completion_tokens,
@@ -166,8 +196,13 @@ class Agent:
                     fromfile="a/" + relpath, tofile="b/" + relpath))
                 approved = self.approval.request(
                     "write_patch", "Write file " + relpath, diff)
+                if self.ledger is not None:
+                    self.ledger.record_approval(
+                        "write_patch", "Write file " + relpath, approved,
+                        mode=("demo auto-approve"
+                              if self.approval.auto_approve else "manual"))
                 if not approved:
-                    return {
+                    return self._finish({
                         "task_id": task.get("id", ""), "passed": False,
                         "steps": step,
                         "total_tokens": self.budget.total_tokens,
@@ -175,26 +210,35 @@ class Agent:
                         "completion_tokens": self.budget.completion_tokens,
                         "error": "Approval denied for " + relpath,
                         "trace": trace,
-                    }
+                    })
                 self.tools.write_patch(relpath, new_content)
+                if self.ledger is not None:
+                    self.ledger.record_patch(
+                        task.get("id", ""), step, relpath, new_content)
+            trace[-1]["patches"] = patches
             test_result = self.tools.run_tests()
+            if self.ledger is not None:
+                self.ledger.record_test_result(
+                    task.get("id", ""), test_result["passed"],
+                    test_result.get("returncode"),
+                    test_result.get("output", ""))
             if test_result["passed"]:
-                return {
+                return self._finish({
                     "task_id": task.get("id", ""), "passed": True,
                     "steps": step, "total_tokens": self.budget.total_tokens,
                     "prompt_tokens": self.budget.prompt_tokens,
                     "completion_tokens": self.budget.completion_tokens,
                     "error": "", "trace": trace,
-                }
+                })
             feedback = "Tests failed:\n" + test_result["output"][-1500:]
-        return {
+        return self._finish({
             "task_id": task.get("id", ""), "passed": False,
             "steps": self.max_steps, "total_tokens": self.budget.total_tokens,
             "prompt_tokens": self.budget.prompt_tokens,
             "completion_tokens": self.budget.completion_tokens,
             "error": "Max steps reached without passing tests.",
             "trace": trace,
-        }
+        })
 
 
 def main(argv=None):
@@ -208,6 +252,8 @@ def main(argv=None):
     parser.add_argument("--tasks-dir", default="tasks")
     parser.add_argument("--work-dir", default=None,
                         help="Sandbox copy of the task starter files")
+    parser.add_argument("--ledger-dir", default="traces",
+                        help="Directory for the run ledger JSON file")
     args = parser.parse_args(argv)
 
     task_dir = Path(args.tasks_dir) / args.task
@@ -239,15 +285,19 @@ def main(argv=None):
     approval = ApprovalGate(auto_approve=args.auto_approve)
     if args.auto_approve:
         print("Demo mode: auto-approve is ON. Approval is normally required.")
+    ledger = RunLedger(traces_dir=args.ledger_dir)
     agent = Agent(client, tools, budget, approval,
                   model=args.model or os.environ.get("BIFROST_MODEL", ""),
-                  mode=args.mode)
+                  mode=args.mode, ledger=ledger)
     result = agent.run({"id": args.task, "description": description,
                         "private": private})
+    ledger_path = ledger.save()
     print("Task:", result["task_id"], "passed:", result["passed"])
     print("Steps:", result["steps"], "total tokens:", result["total_tokens"])
     if result["error"]:
         print("Error:", result["error"])
+    print("Ledger:", str(ledger_path))
+    print(ledger.summary_text())
     return 0 if result["passed"] else 1
 
 

@@ -17,6 +17,9 @@ LeanCoder sends only the code a task needs, found by a small local code search, 
 - `leancoder/approval.py`: approval gate before file writes, shell commands, and Git actions, default approval required, labelled `--auto-approve` demo mode only.
 - `leancoder/tools.py`: sandboxed file write, shell, and Git tools, all inside the task repo only, every action logged.
 - `leancoder/agent.py`: the agent loop, lean retrieval first, then model call, then tool call, then test run, with a max-steps limit.
+- `leancoder/ledger.py`: token ledger, one JSON record per run under `traces/`, with model calls, tool calls, test results, approval decisions, applied patches, and task results. Cost is recorded only when known, local models cost 0, anything else is unknown, never guessed.
+- `leancoder/replay.py`: replays a recorded trace offline, re-applies the patches to a fresh copy of the starter code, runs the hidden tests, and checks the ledger numbers match. Differences are reported plainly, never silently fixed.
+- `verify.py`: the judge verification path, offline, no key, no Docker, no Bifrost. Runs the full unit test suite, replays the recorded traces, and prints PASS or FAIL with the measured numbers.
 - `tasks/`: 5 small real dev tasks, each with a task description, a starter repo, and hidden tests that grade pass or fail.
 - `tests/`: unit tests with mocked HTTP and mocked model calls, no live call, no real key.
 
@@ -33,10 +36,29 @@ Edit `.env` with your own values. Never commit `.env`. Never put a key in code.
 
 ## Run
 
-Verify offline, no key, no Bifrost, no Docker, under 2 minutes:
+Judge verification, offline, no key, no Bifrost, no Docker, under
+2 minutes, and under 5 minutes including the unit tests:
+
+```bash
+python3 verify.py
+```
+
+This runs the full unit test suite, replays every recorded trace
+under `traces/`, re-applies the patches, runs the hidden tests, and
+checks the ledger numbers. It prints PASS or FAIL with the measured
+numbers, and exits 0 only when everything passes. If no traces
+exist yet, the replay step is skipped and reported as skipped.
+
+Unit tests alone, offline:
 
 ```bash
 python3 -m unittest discover -s tests -v
+```
+
+Replay one recorded run by hand:
+
+```bash
+python3 -c "from leancoder.replay import replay_ledger, replay_summary_text; print(replay_summary_text(replay_ledger('traces/run-20261109-000000.json')))"
 ```
 
 Live run (needs Bifrost running and a model configured in Bifrost):
@@ -67,6 +89,8 @@ The agent uses a language model through Bifrost to read task descriptions, propo
 
 ## Limits
 
+- A live agent run from zero is NOT under 5 minutes, because it needs Bifrost and Ollama running and a model downloaded. The under-5-minute judge path is `python3 verify.py` plus the unit tests, all offline, which replays the recorded runs instead of making a live model call.
+- No live model run has been done yet, because no key is on file. Every model call reads its key from the environment only, and every test uses mocked HTTP, so nothing here proves a live run. The first live run needs Bifrost running, a model configured in Bifrost, and `BIFROST_API_KEY` set in the shell.
 - A live agent run needs Bifrost running and a model configured in Bifrost. The offline verify path replays recorded traces and runs the unit tests, it does not make a live model call.
 - Free tier rate limits apply to the free tier model, check the live numbers in Google AI Studio.
-- The ledger, replay, and verify script are in a later batch. This batch is the scaffold, client, budget, approval, tools, agent loop, and the 5 tasks.
+- The ledger lives under `traces/`, which is gitignored, so run records are never committed. Cost is shown only where it is known, local models cost 0, and anything else is recorded as unknown, never guessed.
