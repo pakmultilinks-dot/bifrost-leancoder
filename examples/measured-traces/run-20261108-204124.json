@@ -1,0 +1,68 @@
+{
+  "run_id": "run-20261108-204124",
+  "created_at": "2026-11-08T20:41:24.557978+00:00",
+  "model_calls": [
+    {
+      "task_id": "task4_refactor_dupe",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "prompt_tokens": 331,
+      "completion_tokens": 156,
+      "total_tokens": 487,
+      "cost": 0.0,
+      "estimated": false
+    },
+    {
+      "task_id": "task4_refactor_dupe",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "prompt_tokens": 361,
+      "completion_tokens": 132,
+      "total_tokens": 493,
+      "cost": 0.0,
+      "estimated": false
+    },
+    {
+      "task_id": "task4_refactor_dupe",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "prompt_tokens": 361,
+      "completion_tokens": 150,
+      "total_tokens": 511,
+      "cost": 0.0,
+      "estimated": false
+    }
+  ],
+  "tool_calls": [
+    {
+      "action": "list_files",
+      "target": ".",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "read_file",
+      "target": "pricing.py",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "test_results": [],
+  "approvals": [],
+  "patches": [],
+  "task_results": [
+    {
+      "task_id": "task4_refactor_dupe",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "passed": false,
+      "steps": 3,
+      "prompt_tokens": 1053,
+      "completion_tokens": 438,
+      "total_tokens": 1491,
+      "cost": 0.0,
+      "error": "Max steps reached without passing tests.",
+      "estimated": false
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "run_id": "run-20261108-204239",
+  "created_at": "2026-11-08T20:42:39.719029+00:00",
+  "model_calls": [
+    {
+      "task_id": "task5_input_validation",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "prompt_tokens": 216,
+      "completion_tokens": 96,
+      "total_tokens": 312,
+      "cost": 0.0,
+      "estimated": false
+    }
+  ],
+  "tool_calls": [
+    {
+      "action": "list_files",
+      "target": ".",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "read_file",
+      "target": "validate.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "read_file",
+      "target": "validate.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "write_patch",
+      "target": "validate.py",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "action": "run_tests",
+      "target": "python3 -m unittest discover -s hidden -v",
+      "ok": true,
+      "detail": "test_empty (test_hidden.TestParseAge.test_empty) ... ok\ntest_negative (test_hidden.TestParseAge.test_negative) ... ok\ntest_non_numeric (test_hidden.TestParseAge.test_non_numeric) ... ok\ntest_too_old (test_hidden.TestParseAge.test_too_old) ... ok\ntest_valid (test_hidden.TestParseAge.test_valid) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.000s\n\nOK\n"
+    }
+  ],
+  "test_results": [
+    {
+      "task_id": "task5_input_validation",
+      "passed": true,
+      "returncode": 0,
+      "output": "test_empty (test_hidden.TestParseAge.test_empty) ... ok\ntest_negative (test_hidden.TestParseAge.test_negative) ... ok\ntest_non_numeric (test_hidden.TestParseAge.test_non_numeric) ... ok\ntest_too_old (test_hidden.TestParseAge.test_too_old) ... ok\ntest_valid (test_hidden.TestParseAge.test_valid) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.000s\n\nOK\n"
+    }
+  ],
+  "approvals": [
+    {
+      "kind": "write_patch",
+      "summary": "Write file validate.py",
+      "approved": true,
+      "mode": "demo auto-approve"
+    }
+  ],
+  "patches": [
+    {
+      "task_id": "task5_input_validation",
+      "step": 1,
+      "file": "validate.py",
+      "content": "\"\"\"Input validation helpers.\"\"\"\n\n\ndef parse_age(value):\n    \"\"\"Parse an age string into an int.\"\"\"\n    try:\n        age = int(value)\n    except ValueError:\n        raise ValueError(\"Invalid age input. Please enter a valid integer.\")\n    \n    if age < 0:\n        raise ValueError(\"Age cannot be negative.\")\n    if age > 150:\n        raise ValueError(\"Age cannot exceed 150.\")\n    \n    return age\n"
+    }
+  ],
+  "task_results": [
+    {
+      "task_id": "task5_input_validation",
+      "mode": "direct",
+      "model": "ollama/qwen2.5-coder:3b",
+      "passed": true,
+      "steps": 1,
+      "prompt_tokens": 216,
+      "completion_tokens": 96,
+      "total_tokens": 312,
+      "cost": 0.0,
+      "error": "",
+      "estimated": false
+    }
+  ]
+}

@@ -83,6 +83,20 @@ Bifrost dashboard: http://localhost:8080
 - Direct mode: send the whole repo context on every model call. This is the naive baseline.
 - The headline number is tokens per passing task in lean mode versus direct mode, measured on the same 5 tasks.
 
+## Measured results
+
+Live runs are done and recorded in [MEASURED.md](MEASURED.md), with the
+10 ledger traces committed in `examples/measured-traces/` and replayed
+by `verify.py`.
+
+Headline, measured on 2026-11-08 with ollama/qwen2.5-coder:3b through
+Bifrost v2.5.0: lean mode 3344 tokens total, 4 of 5 tasks passed;
+direct mode 3810 tokens total, 4 of 5 passed. Tokens per passing
+task: lean 560.5, direct 579.75. Lean saved tokens on 3 of 5 tasks
+and lost on 1 (task2, where an extra retry step cost more than the
+smaller prompt saved). Both modes failed one task each, and the
+failures are shown as failures in MEASURED.md, not hidden.
+
 ## How AI is used
 
 The agent uses a language model through Bifrost to read task descriptions, propose patches, and fix failing tests. The model never writes a file directly. Every patch goes through the approval gate, every run is bounded by a token budget, and every token is counted from the model response usage field. Private tasks run only on a local Ollama model, never on a remote free tier model.
@@ -90,7 +104,8 @@ The agent uses a language model through Bifrost to read task descriptions, propo
 ## Limits
 
 - A live agent run from zero is NOT under 5 minutes, because it needs Bifrost and Ollama running and a model downloaded. The under-5-minute judge path is `python3 verify.py` plus the unit tests, all offline, which replays the recorded runs instead of making a live model call.
-- No live model run has been done yet, because no key is on file. Every model call reads its key from the environment only, and every test uses mocked HTTP, so nothing here proves a live run. The first live run needs Bifrost running, a model configured in Bifrost, and `BIFROST_API_KEY` set in the shell.
+- Live runs are done, but only with one local model, ollama/qwen2.5-coder:3b. No remote model was run, because no provider key is on file. Every model call reads its key from the environment only, and every unit test uses mocked HTTP, so the unit tests prove nothing live. The measured live runs are the 10 traces in `examples/measured-traces/`, described in MEASURED.md.
 - A live agent run needs Bifrost running and a model configured in Bifrost. The offline verify path replays recorded traces and runs the unit tests, it does not make a live model call.
 - Free tier rate limits apply to the free tier model, check the live numbers in Google AI Studio.
-- The ledger lives under `traces/`, which is gitignored, so run records are never committed. Cost is shown only where it is known, local models cost 0, and anything else is recorded as unknown, never guessed.
+- Run ledgers live under `traces/`, which is gitignored, so day-to-day run records are never committed. The 10 verified measured traces are the exception: they are copied to `examples/measured-traces/` and committed as proof. Cost is shown only where it is known, local models cost 0, and anything else is recorded as unknown, never guessed.
+- The 3b model is small and inconsistent: the same task in the same mode gave different results on repeat runs. Every number in MEASURED.md is one measured run, not a stable average.
